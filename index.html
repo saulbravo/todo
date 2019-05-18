@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Sauls List</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway"/>
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/base/jquery-ui.css">
+    <script>
+        $(document).ready(function () {
+            //CSS
+            $('.ui-icon-close').css("cursor","pointer");
+            $('h2').css({"text-align":"center", "font-family": "Raleway"});
+            $('#btnAddProject').css({
+                "position":"relative", 
+                "z-index": "1",
+                "margin-top": "16px",
+                "left": "660px",
+                "top": "32px",
+                "cursor": "pointer"
+            });
+            $('#projects').css({
+                "border": "0"
+            });
+            $('.ui-widget-header').css({
+                "border-top":"0",
+                "border-right":"0",
+                "border-left":"0",
+                "border-bottom": "1px solid #dddddd",
+                "background": "none"
+            });
+            $('#container').css({
+                "width":"700px",
+                "height":"450px",
+                "margin":"70px auto"
+            });
+            $('ol li').css({
+                "cursor": "pointer",
+                "padding":"5px",
+                "border-bottom":"1px solid #ccc"
+            });
+
+            //makes sure tasks are unchecked
+            $("input[type=checkbox]").removeAttr("checked");
+
+            //create tabs from list
+            $("#projects").tabs();
+
+            //create sortable list from list with drag limit
+            $("ul").sortable({ axis: "x", containment: "#projects" });
+            $("ol").sortable({ axis: "y", containment: "#projects" });
+
+            //event delagation from the parent to remove tasks 
+            $("#projects").on("click", "input[type=checkbox]", function () {
+                $(this).closest("li").slideUp(function () {
+                    $(this).remove();
+                });
+            });
+
+            //event delagation from the parent to remove projects 
+            $("#projects").on("click", "span.ui-icon-close", function () {
+                var index = $(this).closest("li").index();
+                var id = $("#main li:eq(" + index + ") a").attr("href")
+                $("#main li:eq(" + index + ")").remove();
+                $(id).remove();
+                $("#projects").tabs("refresh");
+            });
+
+            //on button click function....
+            $('#btnAddTask').button().click(function () {
+
+                //display modal 
+                $("#task-dialog").dialog({
+                    resizable: false, modal: true,
+
+                    //create button objects
+                    buttons: {
+                        "Add New Task": function () {
+                            //refreshes tabs when moving
+                            $("#projects").tabs("refresh");
+
+                            //create variables
+                            var activeTab = $("#projects").tabs("option", "active");
+                            var title = $("#main > li:nth-child(" + (activeTab + 1) + ") > a").attr("href");
+
+                            //checks if blank else it adds the task
+                            if ($('#new-task').val() == '') {
+                                alert('Task cannot be left blank');
+                                return false;
+                            }
+                            else {
+                                $("#projects " + title).append("<li style='cursor: pointer; padding: 5px; border-bottom: 1px solid rgb(204, 204, 204);'><input type='checkbox'>" + $("#new-task").val() + "</li>");
+                            }
+
+                            //close dialog
+                            $("#new-task").val("");
+                            $(this).dialog("close");
+                        },
+                        "Cancel": function () {
+                            //close dialog
+                            $("#new-task").val("");
+                            $(this).dialog("close");
+                        }
+                    }
+                });
+            });
+
+            //on button click function....
+            $('#btnAddProject').click(function () {
+
+                //display modal 
+                $("#project-dialog").dialog({
+                    resizable: false, modal: true,
+
+                    //create button objects
+                    buttons: {
+                        "Add New List": function () {
+                            //get the new project value
+                            var projectName = $("#new-project").val();
+
+                            //checks if blank else it adds the project
+                            if ($('#new-project').val() == '') {
+                                alert('List cannot be left blank');
+                                return false;
+                            }
+                            else {
+                                $("<li><a href='#" + projectName + "'>" + projectName + "</a><span class='ui-icon ui-icon-close' style='cursor: pointer;'></span></li>").appendTo("#main");
+                            }
+
+                            //create a list on creation of the new project
+                            $("<ol id='" + projectName + "'></ol>").appendTo("#projects").sortable();
+
+                            //refresh
+                            $("#projects").tabs("refresh");
+
+                            //counts the tab class -1 the makes it active
+                            var tabCount = $("#projects .ui-tabs-nav li").length;
+                            $("#projects").tabs("option", "active", tabCount - 1);
+
+                            //close dialog
+                            $("#new-project").val("");
+                            $(this).dialog("close");
+                        },
+                        "Cancel": function () {
+                            //close dialog
+                            $("#new-project").val("");
+                            $(this).dialog("close");
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+</head>
+
+<body>
+    <div id="container">
+        <h2>TO DO LIST</h2>
+        <span id="btnAddProject" class="ui-icon ui-icon-plusthick"></span>
+        <div id="projects">
+            <ul id="main">
+                <li><a href="#personal">Home</a><span class="ui-icon ui-icon-close"></span></li>
+                <li><a href="#work">Work</a><span class="ui-icon ui-icon-close"></span></li>
+            </ul>
+            <ol id="personal">
+                <li><input type="checkbox">Take kids to soccer practice</li>
+                <li><input type="checkbox">Buy milk</li>
+                <li><input type="checkbox">Dry clothes</li>
+                <li><input type="checkbox">Wash Car</li>
+                <li><input type="checkbox">Feed Dog</li>
+            </ol>
+            <ol id="work">
+                <li><input type="checkbox">Standup Meeting</li>
+                <li><input type="checkbox">Safty Check</li>
+                <li><input type="checkbox">Print Report</li>
+            </ol>
+        </div>
+        <button id="btnAddTask">Add Task</button>
+        <div id="project-dialog" title="Add New List" style="display:none;">
+            <input id="new-project" type="text" />
+        </div>
+        <div id="task-dialog" title="Add New Task" style="display:none;">
+            <input id="new-task" type="text"/>
+        </div>
+    </div>
+
+</body>
+
+</html>
